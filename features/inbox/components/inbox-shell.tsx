@@ -2,10 +2,13 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
+import { Suspense } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
-import { ConversationSidebar } from "@/features/inbox/components/conversation-sidebar";
+import { ConversationList } from "@/features/conversations/components/conversation-list";
+import { ConversationListSkeleton } from "@/features/conversations/components/conversation-list-skeleton";
+import { useConversationSearch } from "@/features/conversations/hooks/use-conversation-search";
 import { InboxHeader } from "@/features/inbox/components/inbox-header";
 import { cn } from "@/lib/utils";
 
@@ -13,15 +16,11 @@ interface InboxShellProps {
   children: React.ReactNode;
 }
 
-function getConversationId(pathname: string): string | null {
-  const match = pathname.match(/^\/inbox\/([^/]+)$/);
-  return match?.[1] ?? null;
-}
-
-export function InboxShell({ children }: InboxShellProps) {
-  const pathname = usePathname();
-  const conversationId = getConversationId(pathname);
+function InboxShellContent({ children }: InboxShellProps) {
+  const params = useParams<{ conversationId?: string }>();
+  const conversationId = params.conversationId ?? null;
   const isChatOpen = Boolean(conversationId);
+  const { inboxHref } = useConversationSearch();
 
   return (
     <div className="flex h-dvh flex-col bg-background">
@@ -34,7 +33,7 @@ export function InboxShell({ children }: InboxShellProps) {
             isChatOpen ? "hidden md:flex md:flex-col" : "flex flex-col",
           )}
         >
-          <ConversationSidebar />
+          <ConversationList />
         </div>
 
         <main
@@ -45,7 +44,7 @@ export function InboxShell({ children }: InboxShellProps) {
         >
           {isChatOpen ? (
             <div className="flex shrink-0 items-center border-b bg-background p-2 md:hidden">
-              <Link href="/inbox" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
+              <Link href={inboxHref} className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
                 <ArrowLeft data-icon="inline-start" />
                 Conversas
               </Link>
@@ -56,5 +55,22 @@ export function InboxShell({ children }: InboxShellProps) {
         </main>
       </div>
     </div>
+  );
+}
+
+export function InboxShell({ children }: InboxShellProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-dvh flex-col bg-background">
+          <InboxHeader />
+          <div className="flex min-h-0 flex-1 border-r md:w-80 lg:w-96">
+            <ConversationListSkeleton />
+          </div>
+        </div>
+      }
+    >
+      <InboxShellContent>{children}</InboxShellContent>
+    </Suspense>
   );
 }

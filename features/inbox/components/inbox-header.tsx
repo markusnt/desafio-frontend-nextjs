@@ -1,15 +1,15 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { MessageSquare } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { agentQueryOptions } from "@/features/agent/queries";
+import { useAgent } from "@/features/agent/hooks/use-agent";
 import { getInitials } from "@/lib/format";
 
 export function InboxHeader() {
-  const { data, isLoading, isError } = useQuery(agentQueryOptions());
+  const { agent, isLoading, isError, refetch } = useAgent();
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b bg-background px-4">
@@ -32,16 +32,18 @@ export function InboxHeader() {
             </div>
             <Skeleton className="size-8 rounded-full" />
           </>
-        ) : isError || !data ? (
-          <span className="text-xs text-destructive">Erro ao carregar perfil</span>
+        ) : isError || !agent ? (
+          <Button variant="ghost" size="sm" onClick={() => refetch()}>
+            Tentar novamente
+          </Button>
         ) : (
           <>
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium leading-none">{data.name}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{data.role}</p>
+              <p className="text-sm font-medium leading-none">{agent.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{agent.role}</p>
             </div>
             <Avatar size="sm">
-              <AvatarFallback>{getInitials(data.name)}</AvatarFallback>
+              <AvatarFallback>{getInitials(agent.name)}</AvatarFallback>
             </Avatar>
           </>
         )}
