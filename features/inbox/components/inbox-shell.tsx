@@ -29,7 +29,7 @@ function InboxShellContent({ children }: InboxShellProps) {
       <div className="flex min-h-0 flex-1">
         <div
           className={cn(
-            "w-full shrink-0 border-r md:w-80 lg:w-96",
+            "inbox-sidebar-bg w-full shrink-0 border-r md:w-80 lg:w-[22rem]",
             isChatOpen ? "hidden md:flex md:flex-col" : "flex flex-col",
           )}
         >
@@ -38,13 +38,16 @@ function InboxShellContent({ children }: InboxShellProps) {
 
         <main
           className={cn(
-            "min-w-0 flex-1 flex-col bg-muted/30",
+            "inbox-chat-bg min-w-0 flex-1 flex-col",
             isChatOpen ? "flex" : "hidden md:flex",
           )}
         >
           {isChatOpen ? (
-            <div className="flex shrink-0 items-center border-b bg-background p-2 md:hidden">
-              <Link href={inboxHref} className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
+            <div className="flex shrink-0 items-center border-b border-border/60 bg-background/90 p-2 backdrop-blur-sm md:hidden">
+              <Link
+                href={inboxHref}
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+              >
                 <ArrowLeft data-icon="inline-start" />
                 Conversas
               </Link>
@@ -64,7 +67,7 @@ export function InboxShell({ children }: InboxShellProps) {
       fallback={
         <div className="flex h-dvh flex-col bg-background">
           <InboxHeader />
-          <div className="flex min-h-0 flex-1 border-r md:w-80 lg:w-96">
+          <div className="inbox-sidebar-bg flex min-h-0 flex-1 border-r md:w-80 lg:w-[22rem]">
             <ConversationListSkeleton />
           </div>
         </div>
