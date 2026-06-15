@@ -1,7 +1,6 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
-import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -11,11 +10,7 @@ interface InboxErrorProps {
   reset: () => void;
 }
 
-export default function InboxError({ error, reset }: InboxErrorProps) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
+export default function InboxError({ reset }: InboxErrorProps) {
   return (
     <EmptyState
       icon={AlertCircle}

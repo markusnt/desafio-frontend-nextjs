@@ -18,6 +18,22 @@ export async function prefetchConversations(queryClient: QueryClient) {
   }
 }
 
+export async function prefetchConversationMessages(
+  queryClient: QueryClient,
+  conversationId: string,
+) {
+  if (!isValidConversationId(conversationId)) {
+    return;
+  }
+
+  try {
+    await queryClient.prefetchQuery(messagesQueryOptions(conversationId));
+  } catch (error) {
+    logPrefetchError(`messages:${conversationId}`, error);
+  }
+}
+
+/** @deprecated Prefira prefetchConversations no layout + prefetchConversationMessages na page. */
 export async function prefetchConversationChat(
   queryClient: QueryClient,
   conversationId: string,

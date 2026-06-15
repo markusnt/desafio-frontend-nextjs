@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * Client Component: exibe dados da conversa ativa (via useConversation no pai),
+ * botão voltar mobile (Link + useConversationSearch) e estados loading/erro interativos.
+ * Mantido Client porque depende de hooks de navegação e retry no client.
+ */
+
 import { ArrowLeft, Phone, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
