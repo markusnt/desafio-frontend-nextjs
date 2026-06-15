@@ -51,6 +51,7 @@ export async function handle(req, store) {
     if (method === "POST") {
       const text = req.body?.text?.toString().trim();
       if (!text) return err(400, "campo obrigatório: text");
+      if (text.length > 4096) return err(400, "mensagem excede o limite de 4096 caracteres");
       const now = new Date().toISOString();
       const message = {
         id: `m-${randomUUID().slice(0, 8)}`,
@@ -78,6 +79,7 @@ export async function handle(req, store) {
 
   // Rota administrativa para popular o DynamoDB uma única vez após o deploy.
   if (method === "POST" && path === "/admin/seed") {
+    if (!process.env.SEED_TOKEN) return err(404, "rota não encontrada");
     const token = req.headers["x-seed-token"];
     if (!token || token !== process.env.SEED_TOKEN) return err(401, "token inválido");
     const count = await store.seed();

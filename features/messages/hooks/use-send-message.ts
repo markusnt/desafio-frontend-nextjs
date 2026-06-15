@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { conversationKeys } from "@/features/conversations/queries";
 import { messageKeys } from "@/features/messages/queries";
 import { updateConversationPreview } from "@/features/messages/utils/update-conversation-preview";
-import { sendMessage, type Message } from "@/lib/api";
+import { sendMessage, type Conversation, type Message } from "@/lib/api";
 
 function createOptimisticMessage(text: string): Message {
   return {
@@ -28,6 +28,9 @@ export function useSendMessage(conversationId: string) {
       await queryClient.cancelQueries({ queryKey: messagesKey });
 
       const previousMessages = queryClient.getQueryData<Message[]>(messagesKey);
+      const previousConversations = queryClient.getQueryData<Conversation[]>(
+        conversationKeys.list(),
+      );
       const optimisticMessage = createOptimisticMessage(text);
       const now = optimisticMessage.createdAt;
 
@@ -38,7 +41,7 @@ export function useSendMessage(conversationId: string) {
 
       updateConversationPreview(queryClient, conversationId, text, now);
 
-      return { previousMessages };
+      return { previousMessages, previousConversations };
     },
     onError: (_error, _text, context) => {
       if (context?.previousMessages) {
@@ -46,6 +49,10 @@ export function useSendMessage(conversationId: string) {
           messageKeys.byConversation(conversationId),
           context.previousMessages,
         );
+      }
+
+      if (context?.previousConversations) {
+        queryClient.setQueryData(conversationKeys.list(), context.previousConversations);
       }
     },
     onSettled: () => {

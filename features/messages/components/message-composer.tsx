@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSuggestReply } from "@/features/ai/hooks/use-suggest-reply";
 import { useSendMessage } from "@/features/messages/hooks/use-send-message";
 import { cn } from "@/lib/utils";
+import { MAX_MESSAGE_LENGTH } from "@/lib/validation";
 
 interface MessageComposerProps {
   conversationId: string;
@@ -126,6 +127,7 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
           aria-label="Mensagem"
           aria-describedby={errorMessage ? "composer-error" : "composer-hint"}
           disabled={isBusy}
+          maxLength={MAX_MESSAGE_LENGTH}
           spellCheck={false}
           rows={1}
           className={cn(
