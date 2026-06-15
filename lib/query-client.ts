@@ -1,4 +1,9 @@
-import { QueryClient, defaultShouldDehydrateQuery, isServer } from "@tanstack/react-query";
+import {
+  QueryClient,
+  defaultShouldDehydrateQuery,
+  isServer,
+  type DehydrateOptions,
+} from "@tanstack/react-query";
 
 export function makeQueryClient() {
   return new QueryClient({
@@ -27,11 +32,9 @@ export function getQueryClient() {
   return browserQueryClient;
 }
 
-export function dehydrateQueryClient(queryClient: QueryClient) {
+export function getDehydrateOptions(): DehydrateOptions {
   return {
-    dehydrateOptions: {
-      shouldDehydrateQuery: (query: Parameters<typeof defaultShouldDehydrateQuery>[0]) =>
-        defaultShouldDehydrateQuery(query) || query.state.status === "pending",
-    },
+    shouldDehydrateQuery: (query) =>
+      defaultShouldDehydrateQuery(query) || query.state.status === "pending",
   };
 }

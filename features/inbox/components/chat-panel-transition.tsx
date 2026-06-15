@@ -1,5 +1,3 @@
-"use client";
-
 interface ChatPanelTransitionProps {
   conversationKey: string;
   children: React.ReactNode;

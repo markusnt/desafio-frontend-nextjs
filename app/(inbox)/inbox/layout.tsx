@@ -1,5 +1,17 @@
-import { InboxShell } from "@/features/inbox/components/inbox-shell";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
-export default function InboxLayout({ children }: { children: React.ReactNode }) {
-  return <InboxShell>{children}</InboxShell>;
+import { InboxShell } from "@/features/inbox/components/inbox-shell";
+import { getDehydrateOptions, getQueryClient } from "@/lib/query-client";
+import { prefetchConversations } from "@/lib/prefetch-inbox";
+
+export default async function InboxLayout({ children }: { children: React.ReactNode }) {
+  const queryClient = getQueryClient();
+
+  await prefetchConversations(queryClient);
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient, getDehydrateOptions())}>
+      <InboxShell>{children}</InboxShell>
+    </HydrationBoundary>
+  );
 }
