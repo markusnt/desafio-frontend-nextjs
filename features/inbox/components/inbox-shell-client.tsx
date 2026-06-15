@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 
 import { ConversationList } from "@/features/conversations/components/conversation-list";
+import { ConnectionCheck } from "@/features/inbox/components/connection-check";
 import { InboxHeader } from "@/features/inbox/components/inbox-header";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ export function InboxShellClient({ children }: InboxShellClientProps) {
 
   return (
     <div className="flex h-dvh flex-col bg-background">
+      <ConnectionCheck />
       <InboxHeader />
 
       <div className="flex min-h-0 flex-1">
