@@ -1,4 +1,5 @@
-import { ChatPanelPlaceholder } from "@/features/inbox/components/chat-panel-placeholder";
+import { ChatPanelTransition } from "@/features/inbox/components/chat-panel-transition";
+import { ChatPanel } from "@/features/messages/components/chat-panel";
 
 interface ConversationPageProps {
   params: Promise<{ conversationId: string }>;
@@ -7,5 +8,9 @@ interface ConversationPageProps {
 export default async function ConversationPage({ params }: ConversationPageProps) {
   const { conversationId } = await params;
 
-  return <ChatPanelPlaceholder conversationId={conversationId} />;
+  return (
+    <ChatPanelTransition conversationKey={conversationId}>
+      <ChatPanel conversationId={conversationId} />
+    </ChatPanelTransition>
+  );
 }
