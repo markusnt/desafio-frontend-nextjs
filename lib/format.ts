@@ -43,6 +43,26 @@ function isYesterday(date: Date, now: Date): boolean {
   return getDateKey(date) === getYesterdayKey(now);
 }
 
+/** Separador de data no histórico (Hoje, Ontem, dd/MM/yyyy). */
+export function formatDateSeparator(iso: string, now = new Date()): string {
+  const date = parseDate(iso);
+
+  if (isSameDay(date, now)) {
+    return "Hoje";
+  }
+
+  if (isYesterday(date, now)) {
+    return "Ontem";
+  }
+
+  return date.toLocaleDateString(LOCALE, DATE_FORMAT);
+}
+
+/** Chave estável do dia para agrupar mensagens (yyyy-MM-dd em America/Sao_Paulo). */
+export function getMessageDateKey(iso: string): string {
+  return getDateKey(parseDate(iso));
+}
+
 /** Horário curto para bolhas de mensagem (ex.: 14:32). */
 export function formatMessageTime(iso: string): string {
   return parseDate(iso).toLocaleTimeString(LOCALE, TIME_FORMAT);

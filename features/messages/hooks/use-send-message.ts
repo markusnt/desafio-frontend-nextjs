@@ -55,9 +55,27 @@ export function useSendMessage(conversationId: string) {
         queryClient.setQueryData(conversationKeys.list(), context.previousConversations);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: messageKeys.byConversation(conversationId) });
-      queryClient.invalidateQueries({ queryKey: conversationKeys.list() });
+    onSuccess: (realMessage) => {
+      queryClient.setQueryData<Message[]>(
+        messageKeys.byConversation(conversationId),
+        (current) => {
+          const withoutOptimistic = (current ?? []).filter(
+            (message) => !message.id.startsWith("optimistic-"),
+          );
+
+          if (withoutOptimistic.some((message) => message.id === realMessage.id)) {
+            return withoutOptimistic;
+          }
+
+          return [...withoutOptimistic, realMessage];
+        },
+      );
+    },
+    onSettled: (_data, error) => {
+      if (error) {
+        queryClient.invalidateQueries({ queryKey: messageKeys.byConversation(conversationId) });
+        queryClient.invalidateQueries({ queryKey: conversationKeys.list() });
+      }
     },
   });
 }

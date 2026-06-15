@@ -1,4 +1,4 @@
-import { Clock } from "lucide-react";
+import { Check, CheckCheck, Clock } from "lucide-react";
 
 import type { Message } from "@/lib/api";
 import { formatMessageTime } from "@/lib/format";
@@ -10,6 +10,23 @@ interface MessageBubbleProps {
 
 export function isOptimisticMessage(message: Message): boolean {
   return message.id.startsWith("optimistic-");
+}
+
+function MessageStatusIcon({ status }: { status: Message["status"] }) {
+  if (status === "read") {
+    return (
+      <CheckCheck
+        className="size-3 text-sky-600 dark:text-sky-400"
+        aria-label="Lida"
+      />
+    );
+  }
+
+  if (status === "delivered") {
+    return <CheckCheck className="size-3 opacity-70" aria-label="Entregue" />;
+  }
+
+  return <Check className="size-3 opacity-70" aria-label="Enviada" />;
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
@@ -44,7 +61,10 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               <span>Enviando…</span>
             </>
           ) : (
-            formatMessageTime(message.createdAt)
+            <>
+              <span>{formatMessageTime(message.createdAt)}</span>
+              {isOutgoing ? <MessageStatusIcon status={message.status} /> : null}
+            </>
           )}
         </time>
       </div>

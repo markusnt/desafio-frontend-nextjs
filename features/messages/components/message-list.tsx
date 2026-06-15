@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { isOptimisticMessage, MessageBubble } from "@/features/messages/components/message-bubble";
 import { MessageListSkeleton } from "@/features/messages/components/message-list-skeleton";
 import { useMessages } from "@/features/messages/hooks/use-messages";
+import { getMessageDateKey, formatDateSeparator } from "@/lib/format";
 
 interface MessageListProps {
   conversationId: string;
@@ -130,9 +131,29 @@ export function MessageList({ conversationId, contactName }: MessageListProps) {
 
       <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-4">
         <div className="flex flex-col gap-2" role="log" aria-label="Histórico de mensagens">
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
+          {messages.map((message, index) => {
+            const dateKey = getMessageDateKey(message.createdAt);
+            const previousKey =
+              index > 0 ? getMessageDateKey(messages[index - 1].createdAt) : null;
+            const showSeparator = dateKey !== previousKey;
+
+            return (
+              <div key={message.id} className="contents">
+                {showSeparator ? (
+                  <div
+                    className="flex justify-center py-2"
+                    role="separator"
+                    aria-label={formatDateSeparator(message.createdAt)}
+                  >
+                    <span className="rounded-full bg-muted/80 px-3 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      {formatDateSeparator(message.createdAt)}
+                    </span>
+                  </div>
+                ) : null}
+                <MessageBubble message={message} />
+              </div>
+            );
+          })}
           <div ref={bottomRef} aria-hidden />
         </div>
       </div>

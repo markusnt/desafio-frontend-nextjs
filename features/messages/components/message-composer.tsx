@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useSuggestReply } from "@/features/ai/hooks/use-suggest-reply";
 import { useSendMessage } from "@/features/messages/hooks/use-send-message";
+import type { AiSuggestion } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { MAX_MESSAGE_LENGTH } from "@/lib/validation";
 
@@ -14,9 +15,16 @@ interface MessageComposerProps {
   conversationId: string;
 }
 
+const AI_SOURCE_LABELS: Record<AiSuggestion["source"], string> = {
+  openai: "OpenAI",
+  mock: "demonstração",
+  "mock-fallback": "fallback local",
+};
+
 export function MessageComposer({ conversationId }: MessageComposerProps) {
   const [text, setText] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [aiSource, setAiSource] = useState<AiSuggestion["source"] | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { mutate: sendMessage, isPending: isSending } = useSendMessage(conversationId);
   const { mutate: suggestReply, isPending: isSuggesting } = useSuggestReply(conversationId);
@@ -31,6 +39,7 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
     }
 
     setErrorMessage(null);
+    setAiSource(null);
 
     sendMessage(trimmedText, {
       onSuccess: () => {
@@ -52,6 +61,7 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
     suggestReply(undefined, {
       onSuccess: (result) => {
         setText(result.suggestion);
+        setAiSource(result.source);
         requestAnimationFrame(() => {
           const textarea = textareaRef.current;
           if (!textarea) {
@@ -89,17 +99,18 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
           "shadow-sm transition-[box-shadow,border-color] focus-within:border-border focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/10",
         )}
       >
-        <div className="flex h-9 shrink-0 items-center justify-center">
+        <div className="flex h-11 shrink-0 items-center justify-center md:h-9">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             aria-label="Sugerir resposta com IA"
+            aria-busy={isSuggesting}
             title="Sugerir resposta com IA"
             disabled={isBusy}
             onClick={handleSuggest}
             className={cn(
-              "size-9 rounded-full",
+              "size-11 rounded-full md:size-9",
               isSuggesting
                 ? "text-muted-foreground"
                 : "text-violet-600 hover:bg-violet-500/10 dark:text-violet-400 dark:hover:bg-violet-400/10",
@@ -140,16 +151,17 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
           )}
         />
 
-        <div className="flex h-9 shrink-0 items-center justify-center">
+        <div className="flex h-11 shrink-0 items-center justify-center md:h-9">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             aria-label="Enviar mensagem"
+            aria-busy={isSending}
             disabled={!canSend}
             onClick={handleSend}
             className={cn(
-              "size-9 rounded-full transition-all",
+              "size-11 rounded-full transition-all md:size-9",
               canSend
                 ? "chat-bubble-out shadow-sm hover:opacity-90"
                 : "bg-background text-muted-foreground/45 ring-1 ring-border/60",
@@ -171,6 +183,14 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
       ) : (
         <p id="composer-hint" className="mt-2 text-[10px] text-muted-foreground/75">
           <span className="font-medium text-violet-600/90 dark:text-violet-400/90">IA</span>
+          {aiSource ? (
+            <>
+              {" · "}
+              <span className="text-muted-foreground/90">
+                Sugestão via {AI_SOURCE_LABELS[aiSource]}
+              </span>
+            </>
+          ) : null}
           {" · "}
           Enter envia · Shift+Enter quebra linha
         </p>
