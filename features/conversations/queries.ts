@@ -1,5 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
 
+import {
+  getConversationsEtag,
+  getConversationsSnapshot,
+  setConversationsSnapshot,
+} from "@/lib/conversations-cache";
 import { getConversations } from "@/lib/api";
 import { POLLING, STALE_TIME } from "@/lib/config/polling";
 
@@ -17,7 +22,19 @@ export function conversationsQueryOptions(options: ConversationsQueryOptions = {
 
   return queryOptions({
     queryKey: conversationKeys.list(),
-    queryFn: getConversations,
+    queryFn: async () => {
+      const result = await getConversations(getConversationsEtag());
+
+      if (result.notModified) {
+        const cached = getConversationsSnapshot();
+        if (cached) {
+          return cached;
+        }
+      }
+
+      setConversationsSnapshot(result.data, result.etag);
+      return result.data;
+    },
     staleTime: STALE_TIME.conversations,
     refetchInterval: chatOpen ? POLLING.conversationsWhenChatOpen : POLLING.conversations,
     refetchOnWindowFocus: true,

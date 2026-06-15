@@ -1,13 +1,17 @@
 "use client";
 
 import { MessageSquareOff } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { isOptimisticMessage, MessageBubble } from "@/features/messages/components/message-bubble";
 import { MessageListSkeleton } from "@/features/messages/components/message-list-skeleton";
 import { useMessages } from "@/features/messages/hooks/use-messages";
+import { messageKeys } from "@/features/messages/queries";
+import { mergeMessages } from "@/features/messages/utils/merge-messages";
+import { getMessages } from "@/lib/api";
 import { getMessageDateKey, formatDateSeparator } from "@/lib/format";
 
 interface MessageListProps {
@@ -30,14 +34,75 @@ function truncateText(text: string, maxLength = 100): string {
 }
 
 export function MessageList({ conversationId, contactName }: MessageListProps) {
+  const queryClient = useQueryClient();
   const { messages, isLoading, isPlaceholderData, isError, refetch } = useMessages(conversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrolledForConversationRef = useRef<string | null>(null);
   const knownMessageIdsRef = useRef<Set<string>>(new Set());
+  const loadingOlderRef = useRef(false);
   const [liveAnnouncement, setLiveAnnouncement] = useState("");
   const lastMessage = messages.at(-1);
   const lastMessageId = lastMessage?.id;
+
+  const loadOlderMessages = useCallback(async () => {
+    if (loadingOlderRef.current || messages.length === 0) {
+      return;
+    }
+
+    const oldest = messages[0];
+    if (!oldest || isOptimisticMessage(oldest)) {
+      return;
+    }
+
+    loadingOlderRef.current = true;
+    const container = scrollRef.current;
+    const previousHeight = container?.scrollHeight ?? 0;
+
+    try {
+      const older = await getMessages(conversationId, {
+        before: oldest.createdAt,
+        limit: 50,
+      });
+
+      if (older.length === 0) {
+        return;
+      }
+
+      queryClient.setQueryData(
+        messageKeys.byConversation(conversationId),
+        mergeMessages(messages, older),
+      );
+
+      requestAnimationFrame(() => {
+        if (!container) {
+          return;
+        }
+
+        container.scrollTop += container.scrollHeight - previousHeight;
+      });
+    } finally {
+      loadingOlderRef.current = false;
+    }
+  }, [conversationId, messages, queryClient]);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) {
+      return;
+    }
+
+    function handleScroll() {
+      if (!container || container.scrollTop > 48) {
+        return;
+      }
+
+      void loadOlderMessages();
+    }
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [loadOlderMessages]);
 
   useEffect(() => {
     scrolledForConversationRef.current = null;
