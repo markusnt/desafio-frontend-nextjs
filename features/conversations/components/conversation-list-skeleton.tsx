@@ -2,11 +2,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function ConversationListSkeleton() {
   return (
-    <div className="flex flex-col gap-1 px-2 pb-2" aria-hidden>
+    <div
+      className="flex flex-col gap-1 px-2 pb-2"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      aria-label="Carregando conversas"
+    >
+      <span className="sr-only">Carregando conversas…</span>
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
           className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-3"
+          aria-hidden
         >
           <Skeleton className="size-11 shrink-0 rounded-full" />
           <div className="min-w-0 flex-1 space-y-2">

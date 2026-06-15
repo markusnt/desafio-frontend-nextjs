@@ -78,7 +78,10 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
   }
 
   return (
-    <div className="shrink-0 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur-sm md:px-5">
+    <div
+      className="shrink-0 border-t border-border/60 bg-background/95 px-3 py-3 backdrop-blur-sm sm:px-4 md:px-5"
+      aria-busy={isBusy}
+    >
       <div
         className={cn(
           "flex items-end gap-2 rounded-2xl border border-border/70 bg-muted/30 p-2",
@@ -121,6 +124,7 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
           onKeyDown={handleKeyDown}
           placeholder="Digite uma mensagem…"
           aria-label="Mensagem"
+          aria-describedby={errorMessage ? "composer-error" : "composer-hint"}
           disabled={isBusy}
           spellCheck={false}
           rows={1}
@@ -159,11 +163,11 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
       </div>
 
       {errorMessage ? (
-        <p className="mt-2 text-xs text-destructive" role="alert">
+        <p id="composer-error" className="mt-2 text-xs text-destructive" role="alert">
           {errorMessage}
         </p>
       ) : (
-        <p className="mt-2 text-[10px] text-muted-foreground/75">
+        <p id="composer-hint" className="mt-2 text-[10px] text-muted-foreground/75">
           <span className="font-medium text-violet-600/90 dark:text-violet-400/90">IA</span>
           {" · "}
           Enter envia · Shift+Enter quebra linha

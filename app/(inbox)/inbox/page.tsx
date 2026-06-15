@@ -7,8 +7,17 @@ export default function InboxPage() {
     <EmptyState
       icon={MessageSquareDashed}
       title="Selecione uma conversa"
-      description="Escolha um contato na lista ao lado para visualizar o histórico e responder."
-      className="h-full"
+      description={
+        <>
+          <span className="md:hidden">
+            Escolha um contato na lista para visualizar o histórico e responder.
+          </span>
+          <span className="hidden md:inline">
+            Escolha um contato na lista ao lado para visualizar o histórico e responder.
+          </span>
+        </>
+      }
+      className="h-full px-6"
     />
   );
 }

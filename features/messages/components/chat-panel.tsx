@@ -1,5 +1,6 @@
 "use client";
 
+import { useConversationSearch } from "@/features/conversations/hooks/use-conversation-search";
 import { useConversation } from "@/features/conversations/hooks/use-conversation";
 import { ChatHeader } from "@/features/messages/components/chat-header";
 import { MessageComposer } from "@/features/messages/components/message-composer";
@@ -10,12 +11,22 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ conversationId }: ChatPanelProps) {
-  const { conversation, isLoading } = useConversation(conversationId);
+  const { inboxHref } = useConversationSearch();
+  const { conversation, isLoading, isError, refetch } = useConversation(conversationId);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <ChatHeader conversation={conversation} isLoading={isLoading && !conversation} />
-      <MessageList conversationId={conversationId} />
+      <ChatHeader
+        conversation={conversation}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => refetch()}
+        backHref={inboxHref}
+      />
+      <MessageList
+        conversationId={conversationId}
+        contactName={conversation?.contactName}
+      />
       <MessageComposer conversationId={conversationId} />
     </div>
   );

@@ -19,5 +19,6 @@ export function useConversation(conversationId: string) {
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
+    refetch: query.refetch,
   };
 }
