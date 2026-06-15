@@ -24,6 +24,10 @@ export function createMemoryStore() {
       const conv = conversations.find((c) => c.id === convId);
       if (conv) Object.assign(conv, patch);
     },
+    async markConversationRead(id) {
+      const conv = conversations.find((c) => c.id === id);
+      if (conv) conv.unread = 0;
+    },
     async seed() {
       return { conversations: conversations.length };
     },

@@ -84,6 +84,10 @@ export function createDynamoStore() {
       );
     },
 
+    async markConversationRead(id) {
+      await this.updateConversation(id, { unread: 0 });
+    },
+
     async seed() {
       const items = [];
       for (const c of seedConversations) {
