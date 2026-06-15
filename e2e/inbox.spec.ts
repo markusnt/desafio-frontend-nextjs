@@ -21,7 +21,8 @@ test.describe("Inbox WhatsApp", () => {
     await composer.fill(uniqueText);
     await page.getByRole("button", { name: "Enviar mensagem" }).click();
 
-    await expect(page.getByText(uniqueText)).toBeVisible({ timeout: 15_000 });
+    const messageLog = page.getByRole("log", { name: "Histórico de mensagens" });
+    await expect(messageLog.getByText(uniqueText)).toBeVisible({ timeout: 15_000 });
 
     await page.getByRole("button", { name: "Sugerir resposta com IA" }).click();
     await expect(composer).not.toHaveValue("", { timeout: 20_000 });
