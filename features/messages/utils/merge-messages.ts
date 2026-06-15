@@ -13,7 +13,3 @@ export function mergeMessages(existing: Message[] | undefined, incoming: Message
 
   return [...map.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
-
-export function flattenMessagePages(pages: Message[][]): Message[] {
-  return mergeMessages(undefined, pages.flat());
-}
