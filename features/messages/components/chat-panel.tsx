@@ -1,7 +1,8 @@
 "use client";
 
-import { useConversations } from "@/features/conversations/hooks/use-conversations";
+import { useConversation } from "@/features/conversations/hooks/use-conversation";
 import { ChatHeader } from "@/features/messages/components/chat-header";
+import { MessageComposer } from "@/features/messages/components/message-composer";
 import { MessageList } from "@/features/messages/components/message-list";
 
 interface ChatPanelProps {
@@ -9,13 +10,13 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ conversationId }: ChatPanelProps) {
-  const { conversations, isLoading: isLoadingConversations } = useConversations();
-  const conversation = conversations.find((item) => item.id === conversationId);
+  const { conversation, isLoading } = useConversation(conversationId);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <ChatHeader conversation={conversation} isLoading={isLoadingConversations && !conversation} />
+      <ChatHeader conversation={conversation} isLoading={isLoading && !conversation} />
       <MessageList conversationId={conversationId} />
+      <MessageComposer conversationId={conversationId} />
     </div>
   );
 }

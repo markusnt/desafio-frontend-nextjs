@@ -1,35 +1,51 @@
+const LOCALE = "pt-BR";
+const TIME_ZONE = "America/Sao_Paulo";
+
 const TIME_FORMAT: Intl.DateTimeFormatOptions = {
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: TIME_ZONE,
 };
 
 const DATE_FORMAT: Intl.DateTimeFormatOptions = {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
+  timeZone: TIME_ZONE,
 };
+
+const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
 function parseDate(iso: string): Date {
   return new Date(iso);
 }
 
+function getDateKey(date: Date): string {
+  return dateKeyFormatter.format(date);
+}
+
+function getYesterdayKey(now: Date): string {
+  const [year, month, day] = getDateKey(now).split("-").map(Number);
+  const yesterday = new Date(Date.UTC(year, month - 1, day - 1));
+  return dateKeyFormatter.format(yesterday);
+}
+
 function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+  return getDateKey(a) === getDateKey(b);
 }
 
 function isYesterday(date: Date, now: Date): boolean {
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  return isSameDay(date, yesterday);
+  return getDateKey(date) === getYesterdayKey(now);
 }
 
 /** Horário curto para bolhas de mensagem (ex.: 14:32). */
 export function formatMessageTime(iso: string): string {
-  return parseDate(iso).toLocaleTimeString("pt-BR", TIME_FORMAT);
+  return parseDate(iso).toLocaleTimeString(LOCALE, TIME_FORMAT);
 }
 
 /**
@@ -40,14 +56,14 @@ export function formatConversationTime(iso: string, now = new Date()): string {
   const date = parseDate(iso);
 
   if (isSameDay(date, now)) {
-    return date.toLocaleTimeString("pt-BR", TIME_FORMAT);
+    return date.toLocaleTimeString(LOCALE, TIME_FORMAT);
   }
 
   if (isYesterday(date, now)) {
     return "Ontem";
   }
 
-  return date.toLocaleDateString("pt-BR", DATE_FORMAT);
+  return date.toLocaleDateString(LOCALE, DATE_FORMAT);
 }
 
 /** Formata telefone brasileiro quando possível; caso contrário retorna o original. */

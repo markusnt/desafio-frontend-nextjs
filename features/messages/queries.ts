@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 
 import { getMessages } from "@/lib/api";
 import { POLLING, STALE_TIME } from "@/lib/config/polling";
@@ -16,5 +16,7 @@ export function messagesQueryOptions(conversationId: string) {
     enabled: Boolean(conversationId),
     staleTime: STALE_TIME.messages,
     refetchInterval: POLLING.messages,
+    refetchOnWindowFocus: true,
+    placeholderData: keepPreviousData,
   });
 }

@@ -8,6 +8,7 @@ export function useMessages(conversationId: string) {
   return {
     messages: query.data ?? [],
     isLoading: query.isLoading,
+    isPlaceholderData: query.isPlaceholderData,
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,

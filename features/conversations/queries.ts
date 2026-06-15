@@ -8,11 +8,18 @@ export const conversationKeys = {
   list: () => [...conversationKeys.all, "list"] as const,
 };
 
-export function conversationsQueryOptions() {
+interface ConversationsQueryOptions {
+  chatOpen?: boolean;
+}
+
+export function conversationsQueryOptions(options: ConversationsQueryOptions = {}) {
+  const { chatOpen = false } = options;
+
   return queryOptions({
     queryKey: conversationKeys.list(),
     queryFn: getConversations,
     staleTime: STALE_TIME.conversations,
-    refetchInterval: POLLING.conversations,
+    refetchInterval: chatOpen ? POLLING.conversationsWhenChatOpen : POLLING.conversations,
+    refetchOnWindowFocus: true,
   });
 }

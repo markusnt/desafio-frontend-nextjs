@@ -1,5 +1,6 @@
 export const POLLING = {
   conversations: 8_000,
+  conversationsWhenChatOpen: 15_000,
   messages: 4_000,
 } as const;
 

@@ -1,9 +1,11 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { messagesQueryOptions } from "@/features/messages/queries";
 import type { Conversation } from "@/lib/api";
 import { formatConversationTime, getInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -15,13 +17,20 @@ interface ConversationItemProps {
 }
 
 export function ConversationItem({ conversation, href, isSelected }: ConversationItemProps) {
+  const queryClient = useQueryClient();
   const hasUnread = conversation.unread > 0;
+
+  function prefetchMessages() {
+    void queryClient.prefetchQuery(messagesQueryOptions(conversation.id));
+  }
 
   return (
     <Link
       href={href}
       role="option"
       aria-selected={isSelected}
+      onMouseEnter={prefetchMessages}
+      onFocus={prefetchMessages}
       className={cn(
         "group flex items-center gap-3 rounded-xl border border-transparent px-3 py-3 transition-all outline-none",
         "hover:border-border/60 hover:bg-background/80 hover:shadow-sm",
