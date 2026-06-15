@@ -8,13 +8,24 @@ import { agent } from "./seed.mjs";
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET,POST,PATCH,OPTIONS",
-  "access-control-allow-headers": "content-type,x-seed-token",
+  "access-control-allow-headers": "content-type,if-none-match,x-seed-token",
 };
 
 const MAX_MESSAGE_LENGTH = 4096;
+const MAX_PAGE_LIMIT = 100;
+const DEFAULT_PAGE_LIMIT = 50;
+const MAX_WAIT_SECONDS = 30;
 
-function ok(body, status = 200) {
-  return { status, headers: { "content-type": "application/json", ...CORS }, body };
+function ok(body, status = 200, extraHeaders = {}) {
+  return {
+    status,
+    headers: { "content-type": "application/json", ...CORS, ...extraHeaders },
+    body,
+  };
+}
+
+function okNoBody(status = 204, extraHeaders = {}) {
+  return { status, headers: { ...CORS, ...extraHeaders }, body: "" };
 }
 
 function err(status, message) {
@@ -28,8 +39,80 @@ function parseIso(value) {
   return date.toISOString();
 }
 
+function clampInt(value, defaultValue, max) {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  if (Number.isNaN(parsed) || parsed < 1) return defaultValue;
+  return Math.min(parsed, max);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function sortMessagesAsc(list) {
   return [...list].sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
+}
+
+function computeConversationsEtag(list) {
+  const maxLastMessageAt = list.reduce(
+    (acc, conversation) => (conversation.lastMessageAt > acc ? conversation.lastMessageAt : acc),
+    "",
+  );
+  const unreadTotal = list.reduce((acc, conversation) => acc + (conversation.unread ?? 0), 0);
+  return `"${list.length}-${maxLastMessageAt}-${unreadTotal}"`;
+}
+
+async function resolveMessages(store, convId, query) {
+  let list = sortMessagesAsc(await store.listMessages(convId));
+
+  if (query.since) {
+    const since = parseIso(query.since);
+    if (!since) return { error: err(400, "parâmetro since inválido") };
+    list = list.filter((message) => message.createdAt > since);
+  }
+
+  if (query.before) {
+    const before = parseIso(query.before);
+    if (!before) return { error: err(400, "parâmetro before inválido") };
+    list = list.filter((message) => message.createdAt < before);
+  }
+
+  if (query.before || query.limit) {
+    const limit = clampInt(query.limit, DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT);
+    list = list.slice(-limit);
+  }
+
+  return { list };
+}
+
+async function resolveMessagesWithWait(store, convId, query) {
+  const waitSeconds = clampInt(query.wait, 0, MAX_WAIT_SECONDS);
+  if (waitSeconds === 0) {
+    return resolveMessages(store, convId, query);
+  }
+
+  const since = query.since ? parseIso(query.since) : null;
+  if (query.since && !since) return { error: err(400, "parâmetro since inválido") };
+
+  const deadline = Date.now() + waitSeconds * 1000;
+  let baselineCount = since
+    ? (await store.listMessages(convId)).filter((message) => message.createdAt > since).length
+    : (await store.listMessages(convId)).length;
+
+  while (Date.now() < deadline) {
+    const current = sortMessagesAsc(await store.listMessages(convId));
+    const matching = since
+      ? current.filter((message) => message.createdAt > since)
+      : current;
+
+    if (matching.length > baselineCount) {
+      return resolveMessages(store, convId, query);
+    }
+
+    await sleep(500);
+  }
+
+  return resolveMessages(store, convId, query);
 }
 
 /**
@@ -49,7 +132,14 @@ export async function handle(req, store) {
   if (method === "GET" && path === "/conversations") {
     const list = await store.listConversations();
     list.sort((a, b) => (a.lastMessageAt < b.lastMessageAt ? 1 : -1));
-    return ok(list);
+    const etag = computeConversationsEtag(list);
+    const ifNoneMatch = headers["if-none-match"];
+
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      return okNoBody(304, { etag });
+    }
+
+    return ok(list, 200, { etag });
   }
 
   const readMatch = path.match(/^\/conversations\/([^/]+)\/read$/);
@@ -68,15 +158,9 @@ export async function handle(req, store) {
     if (!conv) return err(404, "conversa não encontrada");
 
     if (method === "GET") {
-      let list = sortMessagesAsc(await store.listMessages(convId));
-
-      if (query.since) {
-        const since = parseIso(query.since);
-        if (!since) return err(400, "parâmetro since inválido");
-        list = list.filter((message) => message.createdAt > since);
-      }
-
-      return ok(list);
+      const result = await resolveMessagesWithWait(store, convId, query);
+      if (result.error) return result.error;
+      return ok(result.list);
     }
 
     if (method === "POST") {
