@@ -121,20 +121,20 @@ npm run dev
 
 ## Checklist de responsividade (manual)
 
-- [ ] **Mobile (<768px):** lista full-screen; chat ocupa tela; botão voltar no header
-- [ ] **Tablet:** split view ou transição lista ↔ chat
-- [ ] **Desktop:** painel fixo lista + chat lado a lado
-- [ ] Touch targets ≥ 44px nos botões do composer (mobile)
-- [ ] Composer não quebra layout com teclado virtual
+- [x] **Mobile (<768px):** lista full-screen; chat ocupa tela; botão voltar no header
+- [x] **Tablet:** split view ou transição lista ↔ chat
+- [x] **Desktop:** painel fixo lista + chat lado a lado
+- [x] Touch targets ≥ 44px nos botões do composer (mobile)
+- [x] Composer não quebra layout com teclado virtual
 
 ---
 
 ## O que faria com mais tempo
 
-- WebSocket/SSE para mensagens em tempo real
-- Testes E2E completos (Playwright)
-- Virtualização da lista de mensagens em conversas longas
-- Mark-as-read persistido via API (implementado no backend local)
+- WebSocket/SSE para mensagens em tempo real (substituir long polling)
+- Testes E2E ampliados (rollback offline, conversa inválida, mark-as-read com refresh)
+- Deploy das extensões de API (`PATCH read`, delta, ETag) na API hospedada AWS
+- Autenticação e multi-tenant no backend
 
 ---
 

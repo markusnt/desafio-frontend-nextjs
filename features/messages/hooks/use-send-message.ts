@@ -72,9 +72,10 @@ export function useSendMessage(conversationId: string) {
       );
     },
     onSettled: (_data, error) => {
+      queryClient.invalidateQueries({ queryKey: conversationKeys.list() });
+
       if (error) {
         queryClient.invalidateQueries({ queryKey: messageKeys.byConversation(conversationId) });
-        queryClient.invalidateQueries({ queryKey: conversationKeys.list() });
       }
     },
   });
