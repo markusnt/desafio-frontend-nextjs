@@ -39,7 +39,10 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 npm run typecheck
 npm run lint
 npm run build
+npm run test:e2e    # Playwright — sobe dev server automaticamente
 ```
+
+**E2E:** requer `.env.local` com API acessível. Instale browsers: `npx playwright install chromium`.
 
 ---
 
